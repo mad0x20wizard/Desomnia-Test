@@ -2,7 +2,6 @@
 using CommandLine;
 using MadWizard.Desomnia;
 using MadWizard.Desomnia.Daemon.Options;
-using MadWizard.Desomnia.Daemon.Tools;
 using MadWizard.Desomnia.Logging;
 using Microsoft.Extensions.Hosting;
 using NLog;
@@ -12,6 +11,7 @@ using NLog;
 LogManager.Setup().SetupExtensions(ext => ext.RegisterLayoutRenderer<SleepTimeLayoutRenderer>("sleep-duration")); // FIXME
 
 const string FHS_CONFIG_PATH = "/etc/desomnia"; // Filesystem Hierarchy Standard
+const string FHS_PLUGINS_PATH = "/usr/lib/desomnia/plugins";
 
 bool autoReload = false;
 string? autoReloadPath = null;
@@ -27,10 +27,11 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
     });
 
 string configPath = new ConfigDetector(FHS_CONFIG_PATH).Lookup();
+string? pluginsPath = new PathDetector(FHS_PLUGINS_PATH, "plugins").Lookup();
 
 try
 {
-    if (!UnixHelper.IsRoot)
+    if (!Environment.IsPrivilegedProcess)
         throw new Exception("The application must be run with root privileges.");
 
     ConfigFileWatcher watcher;
@@ -44,7 +45,12 @@ try
             builder.RegisterModule<MadWizard.Desomnia.CoreModule>();
             builder.RegisterModule<MadWizard.Desomnia.Daemon.PlatformModule>();
             builder.RegisterModule<MadWizard.Desomnia.Network.Module>();
-            builder.RegisterModule<MadWizard.Desomnia.Network.FirewallKnockOperator.PluginModule>();
+            //builder.RegisterModule<MadWizard.Desomnia.Network.FirewallKnockOperator.PluginModule>();
+
+            if (pluginsPath is not null)
+            {
+                builder.RegisterPluginModules(pluginsPath);
+            }
 
             builder.LoadConfiguration(configPath);
 
