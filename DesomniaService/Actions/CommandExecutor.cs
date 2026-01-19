@@ -14,7 +14,7 @@ namespace MadWizard.Desomnia.Service.Actions
         public required ILogger<CommandExecutor> Logger { protected get; init; }
 
         [ActionHandler("exec")]
-        internal void HandleActionExec(string command, string? arguments, ISession? session = null)
+        internal void HandleActionExec(string command, string? arguments = null, ISession? session = null)
         {
             /**
              * Examples:

@@ -13,10 +13,10 @@ namespace MadWizard.Desomnia.Service.Duo.Configuration
 
         public DelayedAction? OnInstanceIdle { get; set; }
 
-        public ScheduledAction? OnInstanceLogin{ get; set; }
-        public ScheduledAction? OnInstanceStarted { get; set; }
-        public ScheduledAction? OnInstanceStopped { get; set; }
-        public ScheduledAction? OnInstanceLogoff { get; set; }
+        public DelayedAction? OnInstanceLogin{ get; set; }
+        public DelayedAction? OnInstanceStarted { get; set; }
+        public DelayedAction? OnInstanceStopped { get; set; }
+        public DelayedAction? OnInstanceLogoff { get; set; }
 
         public IList<DuoInstanceInfo> Instance { get; private set; } = [];
 

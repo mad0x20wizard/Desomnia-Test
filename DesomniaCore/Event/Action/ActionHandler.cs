@@ -43,7 +43,7 @@ namespace MadWizard.Desomnia
                     {
                         value = paramter.DefaultValue;
                     }
-                    else if (!paramter.IsOptional)
+                    else if (!paramter.IsOptional) // TODO: When is a parameter truly optional? (string?) doesn't seem to count
                     {
                         return null; // parameter cannot be satisfied, skip invocation
                     }
