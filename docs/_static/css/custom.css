@@ -3,4 +3,7 @@
 @import 'layout.css';
 @import 'logo.css';
 
-
+p
+{
+    font-size: 1em;
+}

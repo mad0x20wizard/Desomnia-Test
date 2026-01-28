@@ -1,0 +1,4 @@
+Windows installer
+=================
+
+:OS: 🪟 *Windows*

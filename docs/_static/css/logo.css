@@ -5,7 +5,8 @@
   align-items: center;
   gap: 0.5em;
   
-  font-size: 1.25em;
+  font-family: 'Consolas', monospace;
+  font-size: 1.5em;
 
   margin-top: 0.45rem;
 
