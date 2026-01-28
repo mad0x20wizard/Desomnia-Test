@@ -76,7 +76,7 @@ Name: "custom"; Description: "Custom installation"; Flags: iscustom
 [Components]
 Name: "DesomniaService"; Description: "Desomnia Service"; Types: full minimal duo server custom; Flags: fixed
 Name: "DesomniaService\NetworkMonitor"; Description: "Network Monitoring"; Types: full server duo custom; Flags: disablenouninstallwarning;
-Name: "plugins"; Description: "Additional Features"; Types: full custom; Flags: disablenouninstallwarning; Check: IsDuoInstalled or IsHyperVInstalled or IsBridgeReady
+Name: "plugins"; Description: "Additional Features"; Types: full custom; Flags: disablenouninstallwarning;
 Name: "plugins\DuoStreamIntegration"; Description: "DuoStream Integration"; Types: full duo server custom; Flags: disablenouninstallwarning; Check: IsDuoInstalled
 Name: "plugins\HyperVSupport"; Description: "Hyper-V Support"; Types: full server custom; Flags: disablenouninstallwarning; Check: IsHyperVInstalled
 Name: "plugins\FirewallKnockOperator"; Description: "Firewall Knock Operator"; Types: full custom; Flags: disablenouninstallwarning;
