@@ -421,7 +421,7 @@ When Desomnia observes an outbound packet to a service configured as such, it wa
 Hidden in ``plain`` sight
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Using ``plain`` as a ``knockMethod`` achieves quick results, but is primarily intended for showcasing purposes. Since everyone on the intermediate network will be able to see your "secret" and send it at their own discretion, it is comparable to leaving a post-it note with your password on your computer screen.
+Using ``plain`` as a ``knockMethod`` allows to achieve quick results, but is primarily intended for showcasing purposes. Since everyone on the intermediate network will be able to see your "secret" and send it at their own discretion, it is comparable to leaving a post-it note with your password on your computer screen.
 
 It is advised that any system exposed to the network wilderness for a prolonged duration uses some form of encryption.
 

@@ -10,25 +10,24 @@ NetworkMonitor
 
 Desomnia provides support for monitoring any number of installed network interfaces. You can specify which configuration should be used with which interface by using the ``interface`` and/or ``network`` attribute. If none of them is declared, the configuration will be valid for all interfaces with a gateway configured. See :doc:`interface` to learn more about this.
 
+.. TODO: should sweep made be publicly configurable?
+
 .. code:: xml
 
   <SystemMonitor version="1">
 
     <NetworkMonitor interface="eth0" network="192.168.178.0/24"
 
-      autoDetect="Router|IPv4|IPv6|..." 
+      autoDetect="nothing" 
       autoLatency="1h"
       autoTimeout="5s"
-
-      demandTimeout="5s"
-      demandForward="true"
-      demandParallel="1"
 
       advertise="lazy"
       advertiseIfStopped="true"
 
-      sweepDelay="5min"
-      sweepFrequency="1min"
+      demandTimeout="5s"
+      demandForward="true"
+      demandParallel="1"
 
       knockMethod="plain"
       knockPort="62201"
@@ -91,36 +90,87 @@ network
 
 Describes the network to capture traffic on. You can specify a single IP address or describe a whole subnet in the `CIDR`_ notation. The local network device must be configured accordingly for this configuration to become active.
 
+
 autoDetect
 ++++++++++
 
 :default: nothing
 
-Desomnia can try to automatically discover the shape of your network. The values **MAC**, **IPv4**, **IPv6** and **Services** are inherited by all the configured hosts, while **Router** and **SleepProxy** tell Desomnia to discover the respective network entities. You can freely combine all the different values with the pipe operator or separate them by comma. The outcome of the discovery process will vary according to the installed plugins and the possibilities of your individual network.
+Desomnia can try to automatically discover the shape of your network. The values ``MAC``, ``IPv4``, ``IPv6`` and ``Services`` are inherited by all the configured hosts, while ``Router`` and ``SleepProxy`` tell Desomnia to discover the respective network entities. You can freely combine all the different values with the pipe operator or separate them by comma. The outcome of the discovery process will vary according to the installed plugins and the possibilities of your individual network.
 
-- **nothing**: do no auto-configuration
-..
-- **MAC**: Try to discover the MAC address of the configured hosts and routers
-- **IPv4**: Try to discover the IPv4 address of the configured hosts and routers
-- **IPv6**: Try to discover the IPv6 address(es) of the configured hosts and routers
-..
-- **Router**: Try to discover the network routers
-- **VPN**: Try to discover the available VPN devices, connected to your router (if possible)
-..
-- 🚧 **SleepProxy**: Try to discover the sleep proxies on the network, to register the local services before sleep
-- 🚧 **Services**: Try to discover services of the remote hosts
-..
-- **everything**: all of the above
+The following entities are available for auto-configuration:
+
+``MAC``
+  try to discover the MAC address of the configured hosts and routers
+``IPv4``
+   try to discover the IPv4 address of the configured hosts and routers
+``IPv6``
+  try to discover the IPv6 address(es) of the configured hosts and routers
+``Router``
+  try to discover the network routers
+🚧 ``VPN``
+  try to discover the available VPN devices, connected to your router (if possible)
+🚧 ``SleepProxy``
+  try to discover the sleep proxies on the network, to register the local services before sleep
+🚧 ``Services``
+  try to discover services of the remote hosts
+
+Alternatively you may specify either ``nothing`` or ``everything`` in order to disable auto-configuration or to try to discover as much as possible.
 
 autoLatency
 +++++++++++
 
-  Defines the time span during which expired IP addresses may still linger in the cache of the application. Effectively this sets a timer at which interval all automatically detected IP addresses are discarded and fresh ones will be queried from the available name resolution authorities. This is an optional feature, so there is no default value.
+Defines the time span during which expired IP addresses may still linger in the cache of the application. Effectively this sets a timer at which interval all automatically detected IP addresses are discarded and fresh ones will be queried from the available name resolution authorities. This is an optional feature, so there is no default value.
 
 autoTimeout
 +++++++++++
 
-  Defines the timeout, after which a single request to a name resolution authority (e.g. DNS, WINS, etc.) will be cancelled and the host considered as unknown. The default value is 5 seconds.
+:default: 5s
+
+Defines the timeout, after which a single request to a name or address resolution authority (e.g. ARP, NDP, DNS, WINS, etc.) will be cancelled and the configurable entity considered as unknown.
+
+advertise
+++++++++++
+
+:default: lazy
+
+This option controls when your system should advertise an IP address, that is not it's own. This only makes sense when the Network Monitor is in promiscuous mode, or when there are offline/suspended virtual machines. You can mix and match all the options using the pipe operator, or separate them with a comma.
+
+The following options are available to specify **which address procotols** should be advertised:
+
+``IPv4``
+  advertise IPv4 addresses
+``IPv6``
+  advertise IPv4 addresses
+``Both``
+  advertise IPv4 and IPv6 addresses
+
+The following options are available to specify **when addresses** should be advertised:
+
+``Demand``
+  advertise addresses when the remote host is requested
+``Suspend``
+  advertise addresses after the remote host has been suspended
+``Stop``
+  advertise addresses after the remote host has been stopped (manually or on disconnect)
+``Resume``
+  advertise addresses when the local host resumes from suspend
+
+For your convenience there are two practical short hand notations:
+
+``lazy``    = ``Both|Demand``
+  (remote) hosts are only advertised when requested
+``eager``   = ``Both|Demand|Suspend|Resume``
+  (remote) hosts are advertised as soon as possible
+  
+  This may help in situations, where hosts resume and suspend with high frequency (less than 5min).
+
+advertiseIfStopped
+++++++++++++++++++
+
+:default: true
+
+This options only affects remote hosts. Because there is no standard way of determining whether a remote host has been suspended or turned off without the host itself informing us, we have to assume that it stopped per default. A suspension can only reliably be detected if the remote host is running an instance of Desomnia or a Sleep Proxy client. You can then turn this off in order to prevent addresses for offline systems from being advertised.
 
 pingTimeout
 
