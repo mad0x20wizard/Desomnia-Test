@@ -42,6 +42,17 @@ namespace MadWizard.Desomnia.Network.Configuration.Hosts
         internal string?        KnockEncoding   { get; set; }
         #endregion
 
+        #region     PingOptions
+        TimeSpan?   PingTimeout     { get; set; }
+        TimeSpan?   PingFrequency   { get; set; }
+
+        public PingOptions MakePingOptions(NetworkMonitorConfig network) => new()
+        {
+            Timeout = PingTimeout ?? network.PingTimeout,
+            Frequency = PingFrequency ?? network.PingFrequency
+        };
+        #endregion
+
         #region     WakeOptions
         WakeType?   WakeType        { get; set; }
         ushort?     WakePort        { get; set; }
@@ -59,17 +70,6 @@ namespace MadWizard.Desomnia.Network.Configuration.Hosts
             Repeat = WakeRepeat ?? network.WakeRepeat,
 
             Silent = WakeSilent,
-        };
-        #endregion
-
-        #region     PingOptions
-        TimeSpan?   PingTimeout     { get; set; }
-        TimeSpan?   PingFrequency   { get; set; }
-
-        public PingOptions MakePingOptions(NetworkMonitorConfig network) => new()
-        {
-            Timeout = PingTimeout ?? network.PingTimeout,
-            Frequency = PingFrequency ?? network.PingFrequency
         };
         #endregion
     }

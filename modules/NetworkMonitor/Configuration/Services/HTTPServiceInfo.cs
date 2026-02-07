@@ -24,6 +24,7 @@ namespace MadWizard.Desomnia.Network.Configuration.Services
                 Port = Port,
 
                 HostFilterRule = HostFilterRule,
+                HostRangeFilterRule = HostRangeFilterRule,
                 RequestFilterRule = RequestFilterRule,
 
                 Type = FilterRuleType.Must

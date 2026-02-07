@@ -3,7 +3,7 @@
     public readonly struct DiscoveryOptions
     {
         public TimeSpan Timeout { get; init; }
-        public TimeSpan? Latency { get; init; }
+        public TimeSpan? Refresh { get; init; }
     }
 
     [Flags]

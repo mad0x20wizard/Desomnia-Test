@@ -76,7 +76,7 @@ namespace MadWizard.Desomnia.Network.Discovery.BuiltIn
                     Logger.LogDebug("Host '{HostName}' advertised unknown {Family} address '{IPAddress}'",
                         host.Name, ip.ToFamilyName(), ip);
 
-                    host.AddAddress(ip, lifetime ?? options.Latency);
+                    host.AddAddress(ip, lifetime ?? options.Refresh);
                 }
             }
         }

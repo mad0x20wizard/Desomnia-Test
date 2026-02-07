@@ -24,7 +24,7 @@ namespace MadWizard.Desomnia.Network.Discovery.BuiltIn
 
         public void MaybeStartTimer()
         {
-            if (options.Latency is TimeSpan latency && _autoTimer == null)
+            if (options.Refresh is TimeSpan latency && _autoTimer == null)
             {
                 _autoTimer = new Timer(latency.TotalMilliseconds);
                 _autoTimer.Elapsed += RefreshAddresses;

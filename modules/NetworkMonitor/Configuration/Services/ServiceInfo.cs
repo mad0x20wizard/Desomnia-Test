@@ -67,6 +67,7 @@ namespace MadWizard.Desomnia.Network.Configuration.Services
 
         // Filter-Rules
         public IList<HostFilterRuleInfo> HostFilterRule { get; set; } = [];
+        public IList<HostRangeFilterRuleInfo> HostRangeFilterRule { get; init; } = [];
 
         public ServiceInfo()
         {
@@ -86,6 +87,7 @@ namespace MadWizard.Desomnia.Network.Configuration.Services
                 Port = Port,
 
                 HostFilterRule = HostFilterRule,
+                HostRangeFilterRule = HostRangeFilterRule,
 
                 Type = FilterRuleType.Must
             };
