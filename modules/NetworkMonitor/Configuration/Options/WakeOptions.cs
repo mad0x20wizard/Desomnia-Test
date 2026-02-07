@@ -14,7 +14,7 @@
     [Flags]
     public enum WakeType
     {
-        Auto = 0,
+        None = 0,
 
         Link = 1,
         Network = 2,
@@ -22,6 +22,6 @@
         Unicast = 4,
         Broadcast = 8,
 
-        None = 0xFFFF
+        Auto = 0xFFFF
     }
 }
