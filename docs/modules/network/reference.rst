@@ -18,9 +18,9 @@ Desomnia provides support for monitoring any number of installed network interfa
 
     <NetworkMonitor interface="eth0" network="192.168.178.0/24"
 
-      autoDetect="nothing" 
-      autoLatency="1h"
+      autoDetect="IPv4|IPv6|Router|..." 
       autoTimeout="5s"
+      autoRefresh="1h"
 
       advertise="lazy"
       advertiseIfStopped="true"
@@ -33,24 +33,27 @@ Desomnia provides support for monitoring any number of installed network interfa
       knockPort="62201"
       knockProtocol="UDP"
       knockDelay="500ms"
-      knockRepeat="false"
+      knockRepeat="2s"
       knockTimeout="10s"
-      knockSecret=""
-      knockSecretAuth=""
+      knockSecret="changeme"
+      knockSecretAuth="..."
       knockEncoding="UTF-8"
 
       pingTimeout="500ms" 
-      pingFrequency=""
+      pingFrequency="1min"
       
       wakeType="auto"
       wakePort="9"
-      wakeRepeat="false"
+      wakeRepeat="2s"
       wakeTimeout="10s" 
 
       watchMode="normal"
       watchDeviceTimeout="10s"
-      watchUDPPort=""
-      watchYield="false">
+      watchUDPPort="9"
+      watchYield="false"
+      
+      onConnect="..."
+      onDisconect="...">
 
       <!-- network entities -->
 
@@ -60,7 +63,7 @@ Desomnia provides support for monitoring any number of installed network interfa
       <Router ... />
 
       <HostRange ... />
-      <DnamicHostRange ... />
+      <DynamicHostRange ... />
 
       <!-- global packet filters -->
 
@@ -83,13 +86,12 @@ Desomnia provides support for monitoring any number of installed network interfa
 interface
 +++++++++
 
-Describes the name of the network interface to capture traffic on. 
+Describes the name of the network interface to capture traffic on.
 
 network
 +++++++
 
 Describes the network to capture traffic on. You can specify a single IP address or describe a whole subnet in the `CIDR`_ notation. The local network device must be configured accordingly for this configuration to become active.
-
 
 autoDetect
 ++++++++++
@@ -97,7 +99,7 @@ autoDetect
 :inherited: 
 :default: ``nothing``
 
-Desomnia can try to automatically discover the shape of your network. The values ``MAC``, ``IPv4``, ``IPv6`` and ``Services`` are inherited by all the configured hosts, while ``Router`` and ``SleepProxy`` tell Desomnia to discover the respective network entities. You can freely combine all the different values with the pipe operator or separate them by comma. The outcome of the discovery process will vary according to the installed plugins and the possibilities of your individual network.
+Desomnia can try to automatically discover the shape of your network. The values ``MAC``, ``IPv4``, ``IPv6`` and ``Services`` are inherited by all the configured hosts, while ``Router`` and ``SleepProxy`` tell Desomnia to discover the respective network entities. You can freely combine all the different values with the pipe operator. The outcome of the discovery process will vary according to the installed plugins and the possibilities of your individual network.
 
 The following entities are available for auto-configuration:
 
@@ -123,107 +125,78 @@ autoTimeout
 
 :default: ``5s``
 
-Defines the timeout, after which a single request to a name or address resolution authority (e.g. ARP, NDP, DNS, WINS, etc.) will be cancelled and the configurable entity considered as unknown.
+Sets the timeout, after which a single request to a name or address resolution authority (e.g. ARP, NDP, DNS, WINS, etc.) will be cancelled and the configurable entity considered as unknown.
 
-autoLatency
+autoRefresh
 +++++++++++
 
-Defines the time span during which expired IP addresses may still linger in the cache of the application. Effectively this sets a timer at which interval all automatically detected IP addresses are discarded and fresh ones will be queried from the available name resolution authorities. This is an optional feature, so there is no default value.
+If you define this attribute, Desomnia will scan repeatedly for a changed configuration, waiting for the specified duration each time.
 
-advertise
-++++++++++
+.. include:: ./options/demand.rst
 
-:inherited:
-:default: ``lazy``
-
-This option controls when your system should advertise an IP address, that is not it's own. This only makes sense when the Network Monitor is in promiscuous mode, or when there are offline/suspended virtual machines. You can mix and match all the options using the pipe operator, or separate them with a comma.
-
-The following options are available to specify **which address procotols** should be advertised:
-
-``IPv4``
-  advertise IPv4 addresses
-``IPv6``
-  advertise IPv4 addresses
-``Both``
-  advertise IPv4 and IPv6 addresses
-
-The following options are available to specify **when addresses** should be advertised:
-
-``Demand``
-  advertise addresses when the remote host is requested
-``Suspend``
-  advertise addresses after the remote host has been suspended
-``Stop``
-  advertise addresses after the remote host has been stopped (manually or on disconnect)
-``Resume``
-  advertise addresses when the local host resumes from suspend
-
-For your convenience there are two practical short hand notations:
-
-``lazy``    = ``Both|Demand``
-  (remote) hosts are only advertised when requested
-``eager``   = ``Both|Demand|Suspend|Resume``
-  (remote) hosts are advertised as soon as possible
-  
-  This may help in situations, where hosts resume and suspend with high frequency (less than 5min).
-
-advertiseIfStopped
-++++++++++++++++++
-
-:inherited:
-:default: ``true``
-
-This options only affects remote hosts. Because there is no standard way of determining whether a remote host has been suspended or turned off without the host itself informing us, we have to assume that it stopped per default. A suspension can only reliably be detected if the remote host is running an instance of Desomnia or a Sleep Proxy client. You can then turn this off in order to prevent addresses for offline systems from being advertised.
-
-pingTimeout
-+++++++++++
-
-:inherited:
-:default: ``500ms``
-
-Defines the timeout, after which a single host will be considered as unreachable, after a ARP request, NDP solicitation or ICMP echo request remain without reply. Decrease this value to accelerate WakeRequests in general. Increase this timeout to reduce the possibility of unnecessarily executed WakeRequests on a lagging network.
-
-pingFrequency
+deviceTimeout
 +++++++++++++
 
-:inherited:
+The packet capture device can sometimes become unresponsive. If you select this option, the Network Monitor will restart if no packets have been captured for the specified duration.
 
-Lore ipsum.
+.. include:: ./options/knock.rst
 
+.. include:: ./options/ping.rst
 
-poseTimeout
+.. include:: ./options/wake.rst
 
-  Defines the timeout, after which ARPergefactor will stop to impersonate a host during a WakeRequest and treat the request as failed, if it won't receive any unfiltered unicast IP packet during that time.
+watchMode
++++++++++
 
-poseLatency
+:default: ``normal``
 
-  Defines the time span, after which ARPergefactor will eagerly start to impersonate a host at the latest, since it received the last response from it. This effectively sets a timer, at which the availability of the host will be queried with either ARP or NDP requests. If the host is found to be unresponsive, all it's known IP addresses will be claimed as our own and advertised via ARP and NDP, until we again receive any response from that host.
+This option determines the desired mode of operation:
 
-  If the host sends a Magic Packet including it's own MAC address, it will be treated as a hint to skip the timer and check the availability of the host immediately after waiting ``poseTimeout``, to give the host time to complete it's suspension.
+``normal``
+  The Network Monitor will only concern itself with outgoing packets, sent by the local host. In this mode remote hosts will automcatically woken up with a Magic Packet, when a program tries to access any of their services.
+  
+  .. note::
+    Your local host will never advertise an IP address that does not belong to it.
 
-wakeTimeout
-
-  Defines the timeout, after which a WakeRequest will be considered as failed, if we haven't received any response from the target host after the Magic Packet has been sent. There will be a warning in the log file, if this happens. Also buffered packets will only be forwarded to the target host, if the WakeRequest succeeds. The default value is 10 seconds.
-
-wakeLatency
-
-  Defines the time span during which no WakeRequest will be started for a given host, after the last packet originating from that host has been observed. This is primarily used to reduce the amount of noise on the link and in the logfile, so that actual WakeRequests can be tracked more easily. The default value is 5 seconds.
-
-wakeType
-
-  The same options can be applied here as for the host.
-
-wakePort
-
-  Specifies the port number for Magic Packets encapsulated in UDP packets, if ``wakeType`` was configured with ``network``. The default is ``9``. Typical port numbers used for this are ``7`` (Echo) or ``9`` (Discard). If ``wakeType`` is configure with ``link``, this attribute has no meaning.
-
-wakeForward
-
-  This determines, if packets received for a particular watched host should be queued during an ongoing WakeRequest and forwarded to that host, if it can successfully be waken with the configured ``wakeTimeout``. The default value is ``true``, to improve responsiveness of the connection handshake, instead of relying on the client application to resend it's request until the target host is awake. This can also reduce the likeliness of connection timeouts in the client application. You can set this option to ``false``, if you experience problems with that.
+``promiscuous``
+  The Network Monitor will also react to incoming (multicast) packets, that where sent by remote hosts. In this mode you can watch an entire broadcast domain and transparently do Wake-on-LAN, without modifying either client nor server.
+  
+  .. warning::
+    If necessary the local host may advertise IP addresses that does not belong to it.
 
 watchUDPPort
+++++++++++++
 
-  ARPergefactor typically uses an `EtherType <https://en.wikipedia.org/wiki/EtherType>`__ of ``0x0842`` to send and receive Magic Packets for WakeOnLAN requests, to prevent interference with actual network services. Use this attribute, to make it aware of Magic Packets encapsulated in (probably broadcasted) UDP packets on a given port. This is an optional feature, so there is no default. Typical port numbers used for this are ``7`` (Echo) or ``9`` (Discard).
+Desomnia typically uses an `EtherType <https://en.wikipedia.org/wiki/EtherType>`__ of ``0x0842`` to send and receive Magic Packets to do Wake-on-LAN, to prevent interference with actual network services. Use this attribute, to make it aware of Magic Packets encapsulated in (probably broadcasted) UDP packets on the given port. If you do not configure this and don't monitor any other UDP services, UDP packets can be filtered entirely inside the kernel space, which can dramatically reduce the CPU load in heavy UDP scenarios.
+
+Typical port numbers used for this are ``7`` (Echo) or ``9`` (Discard).
+
+watchYield
+++++++++++
+
+:default: ``false``
+
+Setting this option instructs Desomnia to notify the other nodes on the network before suspending the system. Since there is no standard way to communicate this in a computer network, various techniques will be used:
+
+- For now Desomnia will send a special "Unmagic Packet" as an ethernet broadcast, which contains it's own MAC address as sender and target. Other instances of Desomnia (presumable running in promiscuous mode) can detect this and potentially take over the local IP addresses, to ensure that the next request will wake up the local host immediately, without waiting for the IP caches of the other network nodes to expire.
+
+.. admonition:: Work in progress
+
+  Later, Desomnia will be able to register the local services it is watching with a Sleep Proxy on the network. The Proxy will then be responsible for advertising their presence without interruption and for waking up the local host again if any remote host tries to access them.
+
+onConnect
++++++++++
+
+:⚡️ event:
+
+An action configured for this event will be executed when a network interface identififed by this configuration has connected to the network.
+
+onDisconnect
+++++++++++++
+
+:⚡️ event:
+
+An action configured for this event will be executed when a network interface identififed by this configuration has discconnected from the network.
 
 Host
 ----
@@ -232,270 +205,520 @@ These basic properties are configured the same for every type of host:
 
 .. code:: xml
 
-   <Host name="laptop" hostName="DESKTOP-HUVAVK6"
-     autoDetect="IPv4|IPv6" 
-     MAC="00:11:22:33:44:55" 
-     IPv4="192.168.178.10" 
-     IPv6="2001:0db8:85a3:0000:0000:8a2e:0370:7334">
+  <Host name="laptop" hostName="DESKTOP-HUVAVK6"
+    autoDetect="IPv4|IPv6" 
+    MAC="00:11:22:33:44:55" 
+    IPv4="192.168.178.10" 
+    IPv6="192.168.178.20">
 
-   </Host>
+  </Host>
 
 name
-~~~~
+++++
 
 This is the logical name of the host, to be referenced by filters and written to the logs. You can name this anything you like.
 
 hostName
-~~~~~~~~
+++++++++
 
-This is the actual hostname as it is known to any available name resolution authority. In other words: it's the name, by that your operating system can resolve the host. If you don't set this explicitly, the logical name will be used.
+:default: the logical **name**
 
-.. _autodetect-1:
+
+This is the actual hostname as it is known to the available name resolution authorities. In other words: It's the name, by that your operating system can resolve the host. If you don't set this explicitly, the logical name will be used.
 
 autoDetect
-~~~~~~~~~~
+++++++++++
 
-Configure to auto detect IP addresses. The possible values are ``IPv4`` and ``IPv6``, which you can freely combine with the pipe operator or separate them by comma. This is an optional feature, so there is no default value.
+Configure to auto detect MAC or IP addresses. The possible values are ``MAC``, ``IPv4`` and ``IPv6``, which you can freely combine with the pipe operator. If you do not configure this, the value of the network is used.
 
-MAC
-~~~
+.. include:: ./attributes/mac.rst
 
-Configure the link layer address of this host. Possible formats are:
+.. include:: ./attributes/ipv4.rst
 
-- ``001122334455``
-- ``F0-E1-D2-C3-B4-A5``
-- ``00:11:22:33:44:55``
+.. include:: ./attributes/ipv6.rst
 
-IPv4
-~~~~
+HostRange
+---------
 
-Configure a static IPv4 address for this host. Use the format: ``192.168.178.10``
+With this type you can declare an entire range of hosts. You can further include nested host ranges and individual hosts, identified by their name or IP address.
 
-IPv6
-~~~~
+.. code:: xml
 
-Configure a static IPv6 address for this host. Use the format: ``2001:0db8:85a3:0000:0000:8a2e:0370:7334``
+  <HostRange name="anything"
+    network="192.168.178.0/24"
+    firstIP="192.168.178.10" 
+    lastIP="2001:0db8:85a3:0000:0000:8a2e:0370:7334">
 
-⚠️ You probably don't want to configure this manually, see [[Auto configuration]] and [[IPv6 Support]]
+    <Host name="morpheus" ... />
+    <HostRange name="something" ... />
+
+   </HostRange>
+
+name
+++++
+
+This is the logical name of the host range, to be referenced by filters. You can name this anything you like.
+
+.. include:: ./attributes/range.rst
+
+DynamicHostRange
+----------------
+
+A ``<DynamicHostRange>`` can be configured exactly like a normal ``<HostRange>``, but has the ability to temporarily include additonal hosts, after a successful Singe Packet Authorisation (SPA). If you don't specify the knock attributes, they will be inherited from the Network Monitor configuration.
+
+.. code:: xml
+
+  <DynamicHostRange name="anything" ...
+    
+    knockMethod="plain"
+    knockProtocol="UDP"
+    knockPort="62201"
+    knockTimeout="10s"
+
+    proofIP="true"
+    proofTime="10s">
+
+    <Host name="morpheus" ... />
+    <HostRange name="something" ... />
+
+    <SharedSecret label="simple" ... />
+    <SharedSecret label="better" ... />
+
+  </DynamicHostRange>
+
+knockMethod
++++++++++++
+
+:default: ``plain``
+
+This option determines which method Desomnia should use for the Single Packet Authorization (SPA). The core includes the ``plain`` method to quickly configure a password, that will be transmitted in clear text to the configured ``knockPort``. Please consider to install additional plugins (e.g. :doc:`/plugins/fko`) to unlock more secure knock methods.
+
+knockProtocol
++++++++++++++
+
+:default: ``UDP``
+
+This option configures the protocol with which Desomnia will listen for a SPA packet.
+
+knockPort
++++++++++
+
+:default: ``62201``
+
+This option configures the port at which Desomnia will listen for a SPA packet.
+
+knockTimeout
+++++++++++++
+
+:default: ``10s``
+
+This option specifies how long the remote host will be included in the ``<DynamicHostRange>``, after a successfull Single Packet Authorisation.
+
+proofIP
++++++++
+
+:default: ``false``
+
+This specifies whether or not the remote IP address should be included in the encrypted payload.
+
+proofTime
++++++++++
+
+:duration:
+
+This specifies whether the time must be included in the encrypted payload, and the acceptable deviation to accommodate minor differences in the clock times of the local and remote hosts.
+
+SharedSecret
+++++++++++++
+
+The shared secret for the authenticating can be specified either inline with a single value or as a complex key pair, consisting of two distinct cryptographically byte sequences:
+
+.. code::
+
+  <SharedSecret label="simple" encoding="UTF-8">password</SharedSecret>
+
+  <SharedSecret label="secure" encoding="Base64" passthrough="false">
+    <Key>RqBObjFUM9lguaZin1CjJEK0a4FQamAB9ivXHq0/z6w=</Key>
+    <AuthKey>AsJ0GS2IMgqbCf1hc9BfKpCK5vXiXs/J2ZLri+XdHCdZsarOTPTbPnwGT1bu7Q5+yjOlnK5oNHe3zyJf7A9J1g==</AuthKey>
+  </SharedSecret>
+
+label
+~~~~~
+
+A custom label, to further reference the shared secret.
+
+encoding
+~~~~~~~~
+
+Possible values are ``UTF-8`` and ``Base64``.
+
+passthrough
+~~~~~~~~~~~
+
+:default: ``false``
+
+.. admonition:: Work in progress
+
+  Future versions of Desomnia will allow for the received SPA packet to be forwared to a host further down the connection, if the Network Monitor is configured to do a Single Packet Authorisation itself.
+
+LocalHost
+---------
+
+Inside ``<LocalHost>`` you can declare the services and virtual machines, that should be watched for :doc:`local sleep management </guides/sleep>`:
+
+.. code:: xml
+
+  <NetworkMonitor interface="eth0" ... >
+
+    <LocalHost minTraffic="1MB/s"
+      demandTimeout="5s"
+      demandParallel="1">
+
+      <Service name="SSH" ... />
+      <HTTPService name="HTTP" ... />
+
+      <HostFilterRule ... />
+      <HostRangeFilterRule ... />
+
+      <VirtualHost name="gitlab" ... />
+
+    </LocalHost>
+
+  </NetworkMonitor>
+
+To simplify your configuration and reduce unnecessary verbosity, you are allowed to omit the ``<LocalHost>`` tags, and include your services and virtual hosts directly under the ``<NetworkMonitor>``. The following configuration is behaviourally equivalent to the previous one:
+
+.. code:: xml
+
+  <NetworkMonitor interface="eth0" ...
+    minTraffic="1MB/s"
+
+    demandTimeout="5s"
+    demandParallel="1">
+
+    <Service name="SSH" ... />
+    <HTTPService name="HTTP" ... />
+
+    <HostFilterRule ... />
+    <HostRangeFilterRule ... />
+
+    <VirtualHost name="gitlab" ... />
+
+  </NetworkMonitor>
+
+.. attention::
+
+  Since some of the attributes of ``<LocalHost>`` also exist on the ``<NetworkMonitor>`` there is a slight difference, if you include some ``<RemoteHost>`` in your configuration. This is because the ambiguous attributes are actually interpreted as attributes of the ``<NetworkMonitor>``, which are inherited as defaults by all hosts of the configuration. If this is undesired, you can always use the first notation.
+
+.. include:: ./attributes/traffic.rst
+
+.. include:: ./options/demand.rst
+   :start-after: .. simple ..
+
+*Watched hosts*
+---------------
+
+Watched hosts (``<RemoteHost>`` and ``<VirtualHost>``) extend the ``<Host>`` and both share these additional properties:
+
+.. code:: xml
+
+  <RemoteHost name="morpheus" ...
+    minTraffic="1MB/s"
+
+    advertise="lazy"
+
+    demandTimeout="5s"
+    demandForward="true"
+    demandParallel="1"
+
+    onMagicPacket="wake"
+    onServiceDemand="knock"
+    onDemand="wake"
+    onIdle="suspend"
+    onStart=""
+    onSuspend=""
+    onStop="">
+
+    <Service name="SSH" ... />
+    <HTTPService name="HTTP" ... />
+
+    <HostFilterRule ... />
+    <HostRangeFilterRule ... />
+    <ServiceFilterRule ... />
+    <HTTPFilterRule ... />
+
+    <PingFilterRule ... />
+
+    <VirtualHost name="remote-vm" ... />
+
+  </RemoteHost>
+
+  <VirtualHost name="local-vm" ... />
+
+.. include:: ./attributes/traffic.rst
+
+.. include:: ./options/demand.rst
+
+onMagicPacket
++++++++++++++
+
+:⚡️ event:
+
+An action configured for this event will be executed when the Network Monitor detects a Magic Packet targeted at the host that originated from a different source.
+
+onServiceDemand
++++++++++++++++
+
+:⚡️ event:
+:inherited:
+
+An action configured for this event will be executed when the Network Monitor detects, that a configured service on this host is being accessed.
+
+onDemand
+++++++++
+
+:⚡️ event:
+:default: ``wake``
+
+An action configured for this event will be executed when the Network Monitor detects, that the host is offline and being accessed.
+
+onIdle
+++++++
+
+:⚡️ event:
+
+An action configured for this event will be executed when Desomnia identifies the host as idle.
+
+onStart
++++++++
+
+:⚡️ event:
+
+An action configured for this event will be executed when the Network Monitor detects that the host has started up.
+
+onStop
+++++++
+
+:⚡️ event:
+
+An action configured for this event will be executed when the Network Monitor detects that the host has  suspended itself. This only works if the host sends an appropriate notification before going to sleep.
+
+onStop
+++++++
+
+:⚡️ event:
+
+An action configured for this event will be executed when the Network Monitor detects that the host has disconnected from the network without providing a reason.
 
 RemoteHost
 ----------
 
-For watched hosts, you configure these additional properties:
+For remote hosts you can configure these additional properties:
 
 .. code:: xml
 
-   <WatchHost name="morpheus" ...
-     wakeType="auto"
-     wakeRoute="broadcast"
-     wakePort="9"
-     wakeTimeout="10s"
-     wakeLatency="5s"
-     wakeForward="true"
-     poseTimeout="5s"
-     poseLatency="1min"
-     pingTimeout="500ms"
-     silent="false">
+   <RemoteHost name="morpheus" ...
+      advertiseIfStopped="true"
+
+      knockMethod="plain"
+      knockPort="62201"
+      knockProtocol="UDP"
+      knockDelay="500ms"
+      knockRepeat="2s"
+      knockTimeout="10s"
+      knockSecret="changeme"
+      knockSecretAuth="..."
+      knockEncoding="UTF-8"
+
+      pingTimeout="500ms" 
+      pingFrequency="1min"
+      
+      wakeType="auto"
+      wakePort="9"
+      wakeRepeat="2s"
+      wakeTimeout="10s">
 
      <VirtualHost name="gitlab" ... />
 
-   </WatchHost>
+   </RemoteHost>
 
-.. _waketype-1:
+.. include:: ./options/knock.rst
 
-wakeType
-~~~~~~~~
+.. include:: ./options/ping.rst
 
-Specifies, how Magic Packets should be sent. The default is ``auto``. Possible values are:
-
-- ``auto``: Checks if the requested IP address is in the same subnet as the configured network interface. If both hosts reside in the same network (meaning they share the same range of IP addresses), ``link`` will be used. Otherwise a combination of ``network|unicast`` will be used, because it will be unlikely then, that the target host can be reached with a link layer packet.
-- ``link``: Uses packets with an an `EtherType <https://en.wikipedia.org/wiki/EtherType>`__ of ``0x0842``, that operate below the threshold of user space applications, to prevent interference with actual network services. All hosts have to be on the same subnet, in order for this to work.
-- ``network``: Uses UDP packets with the Magic Packet as payload, which can potentially be routed over a tunnel connection (VPN). It may be necessary to configure a static address mapping on the router or VPN server, to reach a sleeping host. Can be observed by user space applications, that listen on the specified port number.
-- ``unicast``: Send the Magic Packet directly to the device to wake up, without using broadcasts. The link layer packet will be directed at the Ethernet address of the device and potentially all the known IP addresses of the host, if configured with ``network``.
-- ``none``: Don't send any Magic Packet at all. This setting exists, to temporarily disable waking up for a host.
-
-.. _wakeport-1:
-
-wakePort
-~~~~~~~~
-
-Specifies the port number for Magic Packets encapsulated in UDP packets, if ``wakeType`` was configured with ``network``. The default is ``9``. Typical port numbers used for this are ``7`` (Echo) or ``9`` (Discard). If ``wakeType`` is configure with ``link``, this attribute has no meaning.
-
-.. _waketimeout-1:
-
-wakeTimeout
-~~~~~~~~~~~
-
-Defines the timeout, after which a WakeRequest will be considered as failed, if we haven't received any response from the target host after the Magic Packet has been sent. There will be a warning in the log file, if this happens. Also buffered packets will only be forwarded to the target host, if the WakeRequest succeeds. If not specified, the value of the network will be used.
-
-.. _wakelatency-1:
-
-wakeLatency
-~~~~~~~~~~~
-
-Defines the time span during which no WakeRequest will be started for a given host, after the last packet originating from that host has been observed. This is primarily used to reduce the amount of noise on the link and in the logfile, so that actual WakeRequests can be tracked more easily. If not specified, the value of the network will be used.
-
-.. _wakeforward-1:
-
-wakeForward
-~~~~~~~~~~~
-
-This determines, if packets received for a particular watched host should be queued during an ongoing WakeRequest and forwarded to that host, if it can successfully be waken with the configured ``wakeTimeout``. The default value is ``true``, to improve responsiveness of the connection handshake, instead of relying on the client application to resend it's request until the target host is awake. This can also reduce the likeliness of connection timeouts in the client application. You can set this option to ``false``, if you experience problems with that. If not specified, the value of the network will be used.
-
-.. _posetimeout-1:
-
-poseTimeout
-~~~~~~~~~~~
-
-Defines the timeout, after which ARPergefactor will stop to impersonate a host during a WakeRequest and treat the request as failed, if it won't receive any unfiltered unicast IP packet during that time.
-
-.. _poselatency-1:
-
-poseLatency
-~~~~~~~~~~~
-
-Defines the time span, after which ARPergefactor will eagerly start to impersonate the host at the latest, since it received the last response from it. This effectively sets a timer, at which the availability of the host will be queried with either ARP or NDP requests. If the host is found to be unresponsive, all it's known IP addresses will be claimed as our own and advertised via ARP and NDP, until we again receive any response from that host.
-
-If the host sends a Magic Packet including it's own MAC address, it will be treated as a hint to skip the timer and check the availability of the host immediately after waiting ``poseTimeout``, to give the host time to complete it's suspension.
-
-🥷 Read more about this behavior at [[Impersonation]].
-
-.. _pingtimeout-1:
-
-pingTimeout
-~~~~~~~~~~~
-
-Defines the timeout, after which a single host will be considered as unreachable, after a ARP request, NDP solicitation of ICMP echo request remain without reply. If not specified, the value of the network will be used. Decrease this value to accelerate WakeRequests in general. Increase this timeout to reduce the possibility of unnecessarily executed WakeRequests on a lagging network.
+.. include:: ./options/wake.rst
 
 VirtualHost
 -----------
 
-Virtual hosts can only be configured in the context of a watched host. Apart from that, everything is configured like ``WatchHost``.
+Virtual hosts can only be configured in the context of a ``<RemoteHost>`` or the ``<LocalHost>``. Apart from that, everything is configured like any watched host:
 
-.. code:: xml
+.. code-block:: xml
+  :emphasize-lines: 7
 
-   <VirtualHost name="gitlab"
-     wakeRedirect="always">
+   <RemoteHost name="morpheus" ... >
+    <VirtualHost name="gitlab" ... />
+   </RemoteHost>
 
-   </VirtualHost >
+   <LocalHost>
+    <VirtualHost name="gitlab" ...
+      onMagicPacket="wake" />
+   </LocalHost>
 
-wakeRedirect
-~~~~~~~~~~~~
+onMagicPacket
++++++++++++++
 
-With this you can specify, how Magic Packets which carry the MAC address of the *virtual* network interface should be treated. The default behavior is to start a regular WakeRequest, which involves processing all configured filters and potentially impersonating the virtual host. If for some reason you need to wake the physical host at any rate in this particular case, set this to ``always`` in order to skip all configured filters.
+:⚡️ event:
+:default: ``wake``
+
+.. note::
+  Take notice, that the default action for local virtual machines will be to ``wake`` the host. This will allow the virtual host to be waken by a Magic Packet, like any physical host.
 
 Router
 ------
 
+A router shares the same attributes as any other host on the network, but has the following additional attributes:
+
 .. code:: xml
 
-   <Router name="fritz.box" IPv4="192.168.178.1"
+   <Router name="fritz.box" IPv4="192.168.178.1" ...
      allowWake="false"
      allowWakeByRemote="false"
      allowWakeOnLAN="true"
+
      vpnTimeout="500ms"
-     vpnLatency="1min">
+     vpnFrequency="1min">
 
      <VPNClient name="WireGuard VPN" IPv4="192.168.178.201" ... />
 
    </Router>
 
 allowWake
-~~~~~~~~~
++++++++++
 
-Specifies whether the router will be allowed to complete WakeRequests. The default value is ``false``, meaning all packets originating from the router fill be filtered. Setting this value to ``true`` renders all following attributes unnecessary.
+:default: ``false``
+
+Specifies whether the router will be allowed to complete demand requests. The default value is ``false``, meaning all packets originating from the router fill be filtered. Setting this value to ``true`` renders all subsequent attributes unnecessary.
 
 allowWakeByProxy
-~~~~~~~~~~~~~~~~
+++++++++++++++++
 
-Specifies whether or not remote systems, whose packets are forwarded by this router, will be allowed to complete WakeRequests. The default value is ``false``. Setting this value to ``true`` renders all following attributes unnecessary. The difference to the previous setting is, that the router still won't be allowed to successfully complete a wake on it's own, but will receive responses to address resolution requests in order to enable it to forward IP packets from outside of the local network to a sleeping watched host.
+:default: ``false``
+
+Specifies whether or not remote systems, whose packets are forwarded by this router, will be allowed to complete demand requests. Setting this value to ``true`` renders all subsequent attributes unnecessary.
+
+The difference to the previous setting is, that the router still won't be allowed to successfully trigger a wake on it's own, but will receive responses to address resolution requests in order to enable it to forward IP packets from outside of the local network to a sleeping watched host.
 
 allowWakeOnLAN
-~~~~~~~~~~~~~~
+++++++++++++++
+
+:default: ``true``
 
 Specifies if an exception should be made, regarding the previous settings, if we receive a MagicPacket from the router prior to a connection attempt.
 
 vpnTimeout
-~~~~~~~~~~
+++++++++++
 
-Specifies the timeout after it should be assumed that no VPN clients are connected. The default value is ``500ms``. If no VPN clients are configured, this attribute has no effect.
+:default: ``500ms``
 
-vpnLatency
-~~~~~~~~~~
+Specifies the timeout after it should be assumed that no VPN clients are connected. If no VPN clients are configured, this attribute has no effect.
+
+vpnFrequency
+++++++++++++
 
 Specifies the interval at which the presence of VPN clients should be checked. This is an optional feature, so there is no default value. If no VPN clients are configured, this attribute has no effect.
 
-🚧 Periodic checking of VPN clients is currently not implemented, which is why this attribute has no effect. Meanwhile please use ``vpnTimeout`` instead.
+.. admonition:: Work in progress
+
+  Periodic checking of VPN clients is currently not implemented, which is why this attribute has no effect. Meanwhile please use ``vpnTimeout`` instead.
 
 VPNClient
 ---------
 
-VPN clients can only be configured in the context of a router. Apart from that, everything is configured like ``Host``.
+VPN clients can only be configured in the context of a router. Apart from that, everything is configured like any ``<Host>``:
 
-⚠️ Depending on the type of VPN server you have, it probably won't be possible to resolve VPN clients by name, which is why you should provide a static IP mapping, in order to successfully check the reachability of the client. For more information about [[VPN support]], read the corresponding wiki page.
+.. caution::
+  
+  Depending on the type of VPN server you have, it probably won't be possible to resolve VPN clients by name, which is why you should provide a static IP mapping, in order to successfully check the reachability of the client. For more information about :doc:`vpn`, read the corresponding wiki page.
 
 HostFilterRule
 --------------
 
+This rule configures the embedded packet filter to either include or exclude requests that originate from the specified network host:
+
 .. code:: xml
 
    <HostFilterRule name="pie" type="MustNot"
-     hostName="raspberry"
-     MAC="00:11:22:33:44:55" 
      IPv4="192.168.178.10" 
      IPv6="2001:0db8:85a3:0000:0000:8a2e:0370:7334">
 
    </HostFilterRule>
 
-.. _name-1:
+name
+++++
+
+This is the logical name of the host, to be referenced by this filter. In order to use a shared ``<Host>`` entry, all other host related attributes have to be omitted.
+
+.. include:: ./attributes/ipv4.rst
+
+.. include:: ./attributes/ipv6.rst
+
+HostRangeFilterRule
+-------------------
+
+This rule configures the embedded packet filter to either include or exclude requests that originate from the specified network host range:
+
+.. code:: xml
+
+  <HostRangeFilterRule name="anything" type="MustNot"
+    network="192.168.178.0/24"
+    firstIP="192.168.178.10" 
+    lastIP="192.168.178.20">
+
+  </HostFilterRule>
 
 name
-~~~~
+++++
 
-This is the logical name of the host, to be referenced by this filter. In order to use a shared Host entry, all remaining attributes have to omitted.
+This is the logical name of the host range, to be referenced by this filter. In order to use a shared ``<HostRange>`` entry, all other host range related attributes have to be omitted.
 
-.. _hostname-1:
+.. include:: ./attributes/range.rst
 
-hostName
-~~~~~~~~
+ForeignHostFilterRule
+---------------------
 
-This is the actual hostname as it is known to any available name resolution authority. In other words: it's the name, by that your operating system can resolve the host. If you don't set this explicitly, the logical name will be used.
+The ``<ForeignHostFilterRule>`` does not have any attributes, besides the mandatory ``type``, because it derives its configuration from the contextual network interface and matches with all hosts, that are not part of the local subnet:
 
-🚧 Auto detection is currently not supported for ``HostFilterRule``\ s directly, which is why this attribute is meaningless. Until then, you can use a Host entry in your configuration and reference it by name.
+.. code-block:: xml
+  :emphasize-lines: 6
 
-.. _mac-1:
+  <ForeignHostFilterRule type="MustNot">
 
-MAC
-~~~
+    <HostFilterRule ... />
+    <HostRangeFilterRule ... />
 
-Configure the link layer address of this host filter. Possible formats are:
+    <DynamicHostRange ... /> <!-- this is a shortcut -->
 
-- ``001122334455``
-- ``F0-E1-D2-C3-B4-A5``
-- ``00:11:22:33:44:55``
+  </ForeignHostFilterRule>
 
-.. _ipv4-1:
+.. note::
 
-IPv4
-~~~~
+  You are usually not allowed to put network entities directly inside a filter. However, since this is such a common use case, you can put a DynamicHostRange directly inside the ``<ForeignHostFilterRule>``. This is considered to be as if declared seperately and then referenced from inside the ``<HostRangeFilterRule>`` via a ``<HostRangeFilterRule>``.
 
-Configure a static IPv4 address for this host filter. Use the format: ``192.168.178.10``
+  .. code:: xml
 
-.. _ipv6-1:
+    <DynamicHostRange name="dynamic" ... />
 
-IPv6
-~~~~
+    <ForeignHostFilterRule type="MustNot">
 
-Configure a static IPv6 address for this host filter. Use the format: ``2001:0db8:85a3:0000:0000:8a2e:0370:7334``
+      <HostRangeFilterRule name="dynamic" ... />
 
-⚠️ You probably don't want to configure this manually, see [[Auto configuration]] and [[IPv6 Support]]
+    </ForeignHostFilterRule>
 
-.. _servicefilterrule--service:
+ServiceFilterRule
+-----------------
 
-ServiceFilterRule / Service
----------------------------
-
-Instead of using a ``ServiceFilterRule`` with ``type="Must"``, you can add ``Service`` nodes to your host. In both ways you will end up creating a ServiceFilterRule, except that in the latter way, it will always be a "Must"-rule. In a later version ARPergefactor will start to advertise these services with multicast DNS, to conform with Apple's `Bonjour Sleep Proxy <https://en.wikipedia.org/wiki/Bonjour_Sleep_Proxy>`__ protocol.
+This rule configures the embedded packet filter to either include or exclude requests that target the specified network service. You can include any number of ``<HostFilterRule>`` and ``<HostRangeFilterRule>`` in order to make the filter more specific:
 
 .. code:: xml
 
@@ -503,42 +726,45 @@ Instead of using a ``ServiceFilterRule`` with ``type="Must"``, you can add ``Ser
      protocol="TCP" 
      port="22">
 
+     <HostFilterRule ... />
+     <HostRangeFilterRule ... />
+
    </ServiceFilterRule>
 
-   <!-- alternatively use -->
+name
+++++
 
-   <Service name="SFTP" serviceName="sftp-ssh"
-     protocol="TCP" 
-     port="22">
-
-   </Service>
+To document which service this filter targets, you can specify a custom name here.
 
 protocol
-~~~~~~~~
+++++++++
 
-Filter packets to services using the specified IP protocol. The default value is ``TCP``. Possible values are:
+:default: ``TCP``
 
-- ``TCP``: Transmission Control Protocol
-- ``UDP``: User Datagram Protocol
+Filter packets to services using the specified IP protocol. Possible values are:
+
+``TCP``
+  Transmission Control Protocol
+``UDP``
+  User Datagram Protocol
 
 port
-~~~~
+++++
+
+:required:
 
 Filter packets to services listening at the specified port number.
 
-serviceName
-~~~~~~~~~~~
-
-Here you can optionally define a custom service name, that will be advertised with mDNS in a later version, if you configured your rule as a ``Service``. Ideally this name should match with it's counterpart in the `Service Name and Transport Protocol Port Number Registry <https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xml>`__, managed by IANA. If you don't configure this property, the name will be derived from the basic name property, but with all letters lowercase.
-
-.. _construction-httpfilterrule:
-
 🚧 HTTPFilterRule
------------------
+------------------
 
-This filter can be configured with the same attributes as ServiceFilterRule, but otherwise the shown default values will be used instead. Additionally you can configure any number of ``RequestFilterRule``\ s to inspect the payload of the **first** packet. All attributes of ``RequestFilterRule`` and it's children will be matched as a regular expression to the corresponding packet field.
+This filter can be configured with the same attributes as ServiceFilterRule, except that the ``port`` attribute will have the default value of ``80``.
 
-🚧 **This rule is a work in progress and will be released in a future version of ARPergefactor.**
+Additionally you can configure any number of ``RequestFilterRule`` to inspect the payload of the packet. All attributes of ``RequestFilterRule`` and it's children will be matched as a regular expression to the corresponding packet field.
+
+.. admonition:: Work in progress
+
+  This rule is a work in progress and will be released in a future version of Desomnia.
 
 .. code:: xml
 
@@ -546,50 +772,121 @@ This filter can be configured with the same attributes as ServiceFilterRule, but
      protocol="TCP" 
      port="80">
 
-     <RequestFilterRule type="MustNot"
-       method="GET"
-       path="/to/document.html"
-       version="1.1"
-       host="www.example.com">
-
-       <Header name="Accept-Language">de-DE</Header>
-       <Cookie name="logged_in">yes</Cookie>
-
-     </RequestFilterRule>
+     <RequestFilterRule ... />
 
    </HTTPFilterRule>
 
-method
-~~~~~~
+RequestFilterRule
+-----------------
 
-The HTTP method of the request. This can be set to "GET", "POST", "DELETE", etc.
+.. code:: xml
+
+  <RequestFilterRule type="MustNot"
+    method="GET"
+    path="/to/document.html"
+    version="1.1"
+    host="www.example.com">
+
+    <Header name="Accept-Language">de-DE</Header>
+    <Cookie name="logged_in">yes</Cookie>
+
+  </RequestFilterRule>
+
+method
+++++++
+
+The HTTP method of the request. This can be set to ``GET``, ``POST``, ``DELETE``, etc.
 
 path
-~~~~
+++++
 
-The requested path, starting with a "/".
-
-.. _version-1:
+The requested path, starting with ``/``.
 
 version
-~~~~~~~
++++++++
 
-The requested HTTP version, like "HTTP/1.1" or "2.0".
-
-.. _host-1:
+The requested HTTP version, like ``HTTP/1.1`` or ``2.0``.
 
 host
-~~~~
+++++
 
 The requested domain name.
 
 PingFilterRule
 --------------
 
-This filter checks for the presence of a ICMP echo request. There are no further attributes beside the mandatory ``type``.
+This filter checks for the presence of an ICMP echo request. There are no further attributes beside the mandatory ``type``.
 
 .. code:: xml
 
-   <PingFilterRule type="MustNot">
+   <PingFilterRule type="MustNot" />
 
-   </PingFilterRule>
+Service
+-------
+
+When you configure a ``<Service>`` you can configure all the attributes of a ``<ServiceFilterRule>``, except of ``type``. An equivalent ``<ServiceFilterRule>`` will automatically be created then, but which will always have ``type="Must"``.
+
+.. code:: xml
+
+  <Service name="SSH" ...
+    serviceName="ssh"
+    
+    minTraffic="10kb/s"
+    
+    onDemand="knock"
+    onIdle="?">
+
+    <HostFilterRule ... />
+    <HostRangeFilterRule ... />
+
+  </ServiceFilterRule>
+
+serviceName
++++++++++++
+
+:default: the logical **name**, but all lowercase
+
+.. admonition:: Work in progress
+
+  Here you will be able to define a custom service name, that will be advertised with mDNS in a later version. Ideally this name should match with it's counterpart in the `Service Name and Transport Protocol Port Number Registry <https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xml>`__, managed by IANA. If you don't configure this property, the name will be derived from the basic name property, but with all letters lowercase.
+
+.. include:: ./attributes/traffic.rst
+
+onDemand
+++++++++
+
+:⚡️ event:
+
+An action configured for this event will be executed when the Network Monitor detects, that the service is being accessed.
+
+onIdle
+++++++
+
+:⚡️ event:
+
+An action configured for this event will be executed when Desomnia identifies the service as idle.
+
+HTTPService
+-----------
+
+When you configure a ``<HTTPService>`` you can configure all the attributes of a ``<HTTPFilterRule>``, except of ``type``. An equivalent ``<HTTPFilterRule>`` will automatically be created then, but which will always have ``type="Must"``. It also shares all additional attributes from ``<Service>``, but has the ability to declare any number of ``RequestFilterRule`` as child filters:
+
+.. code:: xml
+
+  <HTTPService name="HTTP" ...
+    serviceName="http"
+
+    protocol="TCP"
+    port="80"
+    
+    minTraffic="10kb/s"
+    
+    onDemand="knock"
+    onIdle="?"">
+
+    <HostFilterRule ... />
+    <HostRangeFilterRule ... />
+
+    <RequestFilterRule ... />
+
+  </ServiceFilterRule>

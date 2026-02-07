@@ -3,7 +3,7 @@ h1 + dl
   font-size: 1.25em;
 }
 
-*:where(h1, h2, h3) /* show the section fields inline with the heading*/
+*:where(h1, h2, h3, h4) /* show the section fields inline with the heading*/
 {
   &:has(+ dl)
   {
