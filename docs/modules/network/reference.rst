@@ -449,11 +449,11 @@ Watched hosts (``<RemoteHost>`` and ``<VirtualHost>``) extend the ``<Host>`` and
 
     <PingFilterRule ... />
 
-    <VirtualHost name="remote-vm" ... />
+    <VirtualHost name="remote" ... />
 
   </RemoteHost>
 
-  <VirtualHost name="local-vm" ... />
+  <VirtualHost name="local" ... />
 
 .. include:: ./attributes/traffic.rst
 
@@ -496,12 +496,12 @@ onStart
 
 An action configured for this event will be executed when the Network Monitor detects that the host has started up.
 
-onStop
-++++++
+onSuspend
++++++++++
 
 :⚡️ event:
 
-An action configured for this event will be executed when the Network Monitor detects that the host has  suspended itself. This only works if the host sends an appropriate notification before going to sleep.
+An action configured for this event will be executed when the Network Monitor detects that the host has suspended itself. This only works if the host sends an appropriate notification before going to sleep.
 
 onStop
 ++++++
@@ -697,22 +697,20 @@ The ``<ForeignHostFilterRule>`` does not have any attributes, besides the mandat
     <HostFilterRule ... />
     <HostRangeFilterRule ... />
 
-    <DynamicHostRange ... /> <!-- this is a shortcut -->
+    <DynamicHostRange name="dynamic" ... /> <!-- this is a shortcut -->
 
   </ForeignHostFilterRule>
 
 .. note::
 
-  You are usually not allowed to put network entities directly inside a filter. However, since this is such a common use case, you can put a DynamicHostRange directly inside the ``<ForeignHostFilterRule>``. This is considered to be as if declared seperately and then referenced from inside the ``<HostRangeFilterRule>`` via a ``<HostRangeFilterRule>``.
+  You are usually not allowed to put network entities directly inside a filter. However, since this is such a common use case, you can put a ``<DynamicHostRange>`` directly inside the ``<ForeignHostFilterRule>``. This is considered to be as if declared seperately and then referenced from inside the ``<ForeignHostFilterRule>`` via a ``<HostRangeFilterRule>``. In any case, you must always specify a name for the ``<DynamicHostRange>``.
 
   .. code:: xml
 
     <DynamicHostRange name="dynamic" ... />
 
-    <ForeignHostFilterRule type="MustNot">
-
+    <ForeignHostFilterRule>
       <HostRangeFilterRule name="dynamic" ... />
-
     </ForeignHostFilterRule>
 
 ServiceFilterRule
