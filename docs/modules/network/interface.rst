@@ -14,6 +14,17 @@ Automatic selection
 
 If you do not specify a value for either 'interface' or 'network', Desomnia will automatically monitor all interfaces configured with a standard gateway. This is usually the interface connected to your local network, and, unless you have multiple interfaces up at the same time, it is typically the only interface with this description. In that case, all interfaces will be monitored using the same configuration. This could be exactly what you want if you have wired and wireless links to the same network, at the same time.
 
+By network
+----------
+
+.. code:: xml
+
+    <NetworkMonitor network="192.168.178.0/24">
+        <!-- hosts, etc. -->
+    </NetworkMonitor>
+
+When you specify a network in CIDR notation, the ``<NetworkMonitor>`` will only be configured for interfaces that have joined that particular network. This is determined by the IP address and netmask, or prefix length, of the interface itself, and applies to both IPv4 and IPv6 networks. Alternatively, you can use a single concrete IP address to configure it to bind to a very specific link only.
+
 By interface name
 -----------------
 
@@ -53,17 +64,6 @@ Linux and macOS
 :OS: 🐧 🍎
 
 On Linux and macOS you always use the device or BSD name of the interface, which will usually be something like ``eth0`` or ``eth1``, depending on the number of installed interfaces in your system. Depending on the actual OS and distribution it can also be something like ``en12`` or ``wlan0``. Check ``ifconfig`` for a enumeration of all interfaces by their name.
-
-By network
-----------
-
-.. code:: xml
-
-    <NetworkMonitor network="192.168.178.0/24">
-        <!-- hosts, etc. -->
-    </NetworkMonitor>
-
-When you specify a network in CIDR notation, the ``<NetworkMonitor>`` will only be configured for interfaces that have joined that particular network. This is determined by the IP address and netmask, or prefix length, of the interface itself, and applies to both IPv4 and IPv6 networks. Alternatively, you can use a single concrete IP address to configure it to bind to a very specific link only.
 
 By interface name and network
 -----------------------------
