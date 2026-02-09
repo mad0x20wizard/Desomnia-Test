@@ -17,6 +17,8 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
+    
+    'sphinx_rtd_dark_mode'
 ]
 
 intersphinx_mapping = {
@@ -35,6 +37,8 @@ html_theme = 'sphinx_rtd_theme'
 epub_show_urls = 'footnote'
 
 html_static_path = ['_static']
+
+default_dark_mode = False
 
 def setup(app):
     app.add_css_file('css/custom.css')   # Sphinx 1.8+
