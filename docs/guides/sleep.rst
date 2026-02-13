@@ -1,4 +1,4 @@
-Local Sleep Management
+Local Resource Management
 =========================
 
 :OS: 🪟 Windows
@@ -110,7 +110,7 @@ By specifying both attributes, you can effectively bypass the built-in behaviour
 Start from here
 ---------------
 
-If you are new to this, it would be advisable to familiarize yourself with how to configure Desomnia to imitate the default behaviour of the built-in power management system, and then customize it to your individual needs from there.
+If you are new to this, it would be advisable to familiarize yourself with how to configure Desomnia to mimic the default behaviour of the built-in power management system, and then customize it to your individual needs from there:
 
 .. code:: xml
 
@@ -128,14 +128,14 @@ Windows' built-in power management system monitors these sources by default, so 
 Exploring the core modules
 --------------------------
 
-The following monitors can be used without the need to install additional plugins. Each of these has it's own chapter in the documentation, so we will only briefly describe their purpose and their relation to the built-in power management:
+The following monitors can be used without the need to install additional plugins. Each of these has it's own chapter in the documentation, so we will only briefly describe their purpose and how they relate to the built-in power management:
 
 ``<SessionMonitor>``
 ++++++++++++++++++++
 
-The system should usually be considered non-idle and stay awake for as long as an actual user is interacting with the computer. Windows uses various indicators to determine this, such as mouse and keyboard activity.
+Usually the system will be be considered non-idle and stay awake for as long as an actual user is interacting with the computer. Windows uses various indicators to determine this, such as mouse and keyboard activity.
 
-If you activate this monitor, it will track the activity of user sessions and their idle time will contribute to the system's overall idle state. Read more about how to configure the :doc:`/modules/session/monitor` to constrain this behaviour to individual user accounts, and how to automatically log out idle sessions.
+If you activate this monitor, it will track the activity of user sessions and their idle time will contribute to the system's overall idle state. Read more about how to configure the :doc:`/modules/session/monitor` to constrain this behaviour to individual user accounts, and how to use session events. For exmaple: to automatically log out idle sessions.
 
 ``<NetworkSessionMonitor>``
 +++++++++++++++++++++++++++

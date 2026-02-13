@@ -633,7 +633,7 @@ Specifies the interval at which the presence of VPN clients should be checked. T
   Periodic checking of VPN clients is currently not implemented, which is why this attribute has no effect. Meanwhile please use ``vpnTimeout`` instead.
 
 VPNClient
----------
++++++++++
 
 VPN clients can only be configured in the context of a router. Apart from that, everything is configured like any ``<Host>``:
 
@@ -880,7 +880,7 @@ When you configure a ``<HTTPService>`` you can configure all the attributes of a
     minTraffic="10kb/s"
     
     onDemand="knock"
-    onIdle="?"">
+    onIdle="?">
 
     <HostFilterRule ... />
     <HostRangeFilterRule ... />
