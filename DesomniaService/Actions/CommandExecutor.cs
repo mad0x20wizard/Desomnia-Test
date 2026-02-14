@@ -23,6 +23,11 @@ namespace MadWizard.Desomnia.Service.Actions
              */
             command = Path.GetFullPath(Environment.ExpandEnvironmentVariables(command));
 
+            if (arguments != null)
+            {
+                arguments = Environment.ExpandEnvironmentVariables(arguments);
+            }
+
             // Fix the wrong profile path
             if (session != null && command.Contains(SYSTEM_PROFILE_PATH, StringComparison.InvariantCultureIgnoreCase))
                 command = command.Replace(SYSTEM_PROFILE_PATH, session.GetProfilePath(), 
