@@ -91,10 +91,9 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: DesomniaDaemon_${{ matrix.arch }}
+          name: linux_${{ matrix.arch }}
           path:  ${{ runner.temp }}/publish/desomniad
           if-no-files-found: error
-
 
   build-linux-docker:
     name: Build Docker image
@@ -143,7 +142,7 @@ jobs:
       - name: Download daemon
         uses: actions/download-artifact@v4
         with:
-          name: DesomniaDaemon_${{ matrix.platform == 'linux/arm64' && 'arm64' || 'x64' }}
+          name: linux_${{ matrix.platform == 'linux/arm64' && 'arm64' || 'x64' }}
           path: ${{ runner.temp }}/context
           merge-multiple: true
 
@@ -215,6 +214,42 @@ jobs:
         run: |
           docker buildx imagetools inspect ${{ vars.DOCKERHUB_IMAGE }}:${{ steps.meta.outputs.version }}
 
+  build-macos:
+    name: Build DesomniaLaunchDaemon
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        arch: [ arm64, x64 ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '${{ env.VERSION_NET }}.x'
+          
+      - name: Publish DesomniaLaunchDaemon (${{ matrix.arch }})
+        run: |
+          dotnet publish DesomniaLaunchDaemon/DesomniaLaunchDaemon.csproj \
+            -o ${{ runner.temp }}/publish \
+            -f net${{ env.VERSION_NET }} \
+            -c Release \
+            -r osx-${{ matrix.arch }} \
+            --no-self-contained \
+            -p:DebugSymbols=false \
+            -p:PublishSingleFile=true \
+            -p:PublishReadyToRun=true
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos_${{ matrix.arch }}
+          path:  ${{ runner.temp }}/publish/desomniad
+          if-no-files-found: error
+
   build-windows:
     name: Build DesomniaService
     runs-on: ubuntu-latest
@@ -259,7 +294,7 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: DesomniaService_${{ matrix.arch }}
+          name: windows_${{ matrix.arch }}
           path:  ${{ runner.temp }}/publish/
           if-no-files-found: error
 
@@ -303,12 +338,12 @@ jobs:
       - name: Download service (x64)
         uses: actions/download-artifact@v4
         with:
-          name: DesomniaService_x64
+          name: windows_x64
           path: installer\build\components\service\x64
       - name: Download service (arm64)
         uses: actions/download-artifact@v4
         with:
-          name: DesomniaService_arm64
+          name: windows_arm64
           path: installer\build\components\service\arm64
 
       - name: Build installer (ISCC)
@@ -340,7 +375,36 @@ jobs:
           name: installer
           path: ${{ runner.temp }}
 
+      - name: Download installer
+        uses: actions/download-artifact@v4
+        with:
+          name: installer
+          path: ${{ runner.temp }}
+
+
       # (Optional) If you need to re-zip folders into single distributables, do it here. 
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/artifacts
+
+      - name: Create platform-specific archives
+        shell: bash
+        run: |
+          VERSION="${{ env.VERSION_DESOMNIA }}" 
+          VERSION="${VERSION#v}"
+          cd ${{ runner.temp }}/artifacts
+          
+          for platform in windows linux macos; do
+            for dir in ${platform}_*/; do
+              if [ -d "$dir" ]; then
+                arch="${dir%/}"
+                arch="${arch#${platform}_}"
+                zip -r "${{ runner.temp }}/Desomnia_${platform}_${VERSION}_${arch}.zip" "$dir"
+              fi
+            done
+          done
 
       - name: Create GitHub Release and upload assets
         uses: softprops/action-gh-release@v2
@@ -350,4 +414,4 @@ jobs:
           prerelease: ${{ contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') }}
           #generate_release_notes: true
           files: |
-            ${{ runner.temp }}/Desomnia_*.exe
+            ${{ runner.temp }}/Desomnia_*
