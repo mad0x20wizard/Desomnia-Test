@@ -156,7 +156,6 @@ jobs:
         with:
           pattern: "*_{x64,arm64}"
           path: ${{ runner.temp }}/main
-          merge-multiple: true
 
       - name: Create platform-specific archives
         shell: bash
