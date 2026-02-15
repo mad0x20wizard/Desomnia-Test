@@ -170,7 +170,7 @@ jobs:
               if [ -d "$dir" ]; then
                 arch="${dir%/}"
                 arch="${arch#${platform}_}"
-                zip -r "${{ runner.temp }}/Desomnia_${platform}_${VERSION}_${arch}.zip" "$dir"
+                zip -r "${{ runner.temp }}/Desomnia_${VERSION}_${platform}_${arch}.zip" "$dir"
               fi
             done
           done
