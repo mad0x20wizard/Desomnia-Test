@@ -230,6 +230,17 @@ jobs:
             done
           done
 
+          # Create universal macOS archive with both architectures
+          if [ -d "macos_x64" ] && [ -d "macos_arm64" ]; then
+            mkdir -p "${{ runner.temp }}/macos_universal"
+            cp -r macos_x64/* "${{ runner.temp }}/macos_universal/"
+            cp -r macos_arm64/* "${{ runner.temp }}/macos_universal/"
+            (
+              cd "${{ runner.temp }}/macos_universal"
+              zip -r "${{ runner.temp }}/Desomnia_${VERSION}_macos.zip" .
+            )
+          fi
+
           cd ${{ runner.temp }}/plugins
 
           for plugin_dir in */; do
@@ -249,3 +260,25 @@ jobs:
           files: |
             ${{ runner.temp }}/Desomnia_*
             ${{ runner.temp }}/plugin-*.zip
+
+  # release-homebrew:
+  #   name: Bump Homebrew formula
+  #   needs: [ release ]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Extract version
+  #       id: version
+  #       run: |
+  #         TAG="${GITHUB_REF_NAME}"     # v3.0.0-beta5
+  #         VERSION="${TAG#v}"           # 3.0.0-beta5
+  #         echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  #     - name: Bump Homebrew formula in custom tap
+  #       uses: mislav/bump-homebrew-formula-action@v3
+  #       with:
+  #         formula-name: desomnia
+  #         homebrew-tap: mad0x20wizard/homebrew-tools
+  #         # If your asset name follows your tag, you can compute the URL like this:
+  #         download-url: https://github.com/mad0x20wizard/Desomnia-Test/releases/download/${{ github.ref_name }}/Desomnia_${{ steps.version.outputs.version }}_macos.zip
+  #       env:
+  #         COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
