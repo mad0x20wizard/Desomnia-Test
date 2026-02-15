@@ -233,8 +233,8 @@ jobs:
           # Create universal macOS archive with both architectures
           if [ -d "macos_x64" ] && [ -d "macos_arm64" ]; then
             mkdir -p "${{ runner.temp }}/macos_universal"
-            cp -r macos_x64/* "${{ runner.temp }}/macos_universal/"
-            cp -r macos_arm64/* "${{ runner.temp }}/macos_universal/"
+            cp -r macos_x64/ "${{ runner.temp }}/macos_universal/"
+            cp -r macos_arm64/ "${{ runner.temp }}/macos_universal/"
             (
               cd "${{ runner.temp }}/macos_universal"
               zip -r "${{ runner.temp }}/Desomnia_${VERSION}_macos.zip" .
