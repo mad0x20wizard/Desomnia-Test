@@ -176,6 +176,10 @@ jobs:
             done
           done
 
+          ls
+          cd ${{ runner.temp }}
+          ls
+
       - name: Create GitHub Release and upload assets
         uses: softprops/action-gh-release@v2
         with:
