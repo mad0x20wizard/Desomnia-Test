@@ -176,7 +176,14 @@ jobs:
               if [ -d "$dir" ]; then
                 arch="${dir%/}"
                 arch="${arch#${platform}_}"
-                zip -r "${{ runner.temp }}/Desomnia_${VERSION}_${platform}-${arch}.zip" "$dir*"
+
+                out="${{ runner.temp }}/Desomnia_${VERSION}_${platform}-${arch}.zip"
+
+                (
+                  cd "$dir" || exit 1
+                  # zip the *contents* of the dir, not the dir itself
+                  zip -r "$out" .
+                )
               fi
             done
           done
