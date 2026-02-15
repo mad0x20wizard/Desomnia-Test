@@ -17,6 +17,48 @@ env:
 
 jobs:
 
+  build-plugins:
+    name: Build Desomnia plugin
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        # name: [ FirewallKnockOperator ]
+        name: [ DuoStreamIntegration, HyperVSupport, FirewallKnockOperator ]
+
+        include:
+          - name: DuoStreamIntegration
+            os: -windows8.0
+          - name: HyperVSupport
+            os: -windows8.0
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '${{ env.VERSION_NET }}.x'
+
+      - name: Publish ${{ matrix.name }}
+        run: |
+          dotnet publish plugins/${{ matrix.name }}/${{ matrix.name }}.csproj \
+            -o ${{ runner.temp }}/publish/${{ matrix.name }} \
+            -f net${{ env.VERSION_NET }}${{ matrix.os }} \
+            -c Release \
+            --no-self-contained \
+            -p:DebugType=None \
+            -p:DebugSymbols=false \
+            -p:PublishSingleFile=false
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-${{ matrix.name }}
+          path:  ${{ runner.temp }}/publish/
+          if-no-files-found: error
+
   build-linux:
     name: Build DesomniaDaemon
     runs-on: ubuntu-latest
@@ -139,7 +181,7 @@ jobs:
 
   release:
     name: Create Release
-    needs: [ build-windows, build-macos, build-linux ]
+    needs: [ build-plugins, build-windows, build-macos, build-linux ]
     runs-on: ubuntu-latest
     steps:
       # Download everything you want to publish as release assets
